@@ -8,10 +8,17 @@
 BASE_DIR=$(cd $(dirname "$0") && pwd)
 source $BASE_DIR/../../../localrc
 
-LENNY=$(xe template-list name-label=Debian\ Lenny\ 5.0\ \(32-bit\) --minimal)
+#LENNY=$(xe template-list name-label=Debian\ Lenny\ 5.0\ \(32-bit\) --minimal)
 
-if [[ -z $LENNY ]] ; then
-    echo "Cant find lenny 32bit template, is this on 6.0.2?"
+#if [[ -z $LENNY ]] ; then
+#    echo "Cant find lenny 32bit template, is this on 6.0.2?"
+#    exit 1
+#fi
+
+SQUEEZE=$(xe template-list name-label=Debian\ Squeeze\ 6.0\ \(32-bit\) --minimal)
+
+if [[ -z $SQUEEZE ]] ; then
+    echo "Can't find Squeeze 32bit template, is this on 6.0.2?"
     exit 1
 fi
 
@@ -36,7 +43,7 @@ for arch in ${arches[@]} ; do
             netcfgargs="netcfg/disable_autoconfig=true netcfg/get_nameservers=${NAMESERVERS} netcfg/get_ipaddress=${NETINSTALLIP} netcfg/get_netmask=${NETMASK} netcfg/get_gateway=${GATEWAY} netcfg/confirm_static=true"
             pvargs="${pvargs} ${netcfgargs}"
         fi
-        NEWUUID=$(xe vm-clone uuid=$LENNY new-name-label="$distro ($arch)")
+        NEWUUID=$(xe vm-clone uuid=$SQUEEZE new-name-label="$distro ($arch)")
         xe template-param-set uuid=$NEWUUID other-config:install-methods=http,ftp \
          other-config:install-repository=http://archive.ubuntu.net/ubuntu \
          PV-args="$pvargs" \
