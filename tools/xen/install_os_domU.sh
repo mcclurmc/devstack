@@ -44,7 +44,7 @@ XAPI_PLUGIN_DIR=/etc/xapi.d/plugins/
 if [ ! -d $XAPI_PLUGIN_DIR ]; then
     XAPI_PLUGIN_DIR=$XAPI_PLUGIN_DIR_DEB
 fi
-cp -pr $TOP_DIR/nova/plugins/xenserver/xenapi/etc/xapi.d/plugins/* $XAPI_PLUGIN_DIR
+cp -pr $TOP_DIR/nova/*/plugins/xenserver/xenapi/etc/xapi.d/plugins/* $XAPI_PLUGIN_DIR
 chmod a+x ${XAPI_PLUGIN_DIR}*
 
 mkdir -p /boot/guest
@@ -134,10 +134,10 @@ create_vlan $MGT_DEV $MGT_VLAN $MGT_NET
 HOST_IP=${HOST_IP:-`ifconfig xenbr0 | grep "inet addr" | cut -d ":" -f2 | sed "s/ .*//"`}
 
 # Set up ip forwarding
-if ! grep -q "FORWARD_IPV4=YES" /etc/sysconfig/network; then
-    # FIXME: This doesn't work on reboot!
-    echo "FORWARD_IPV4=YES" >> /etc/sysconfig/network
-fi
+#if ! grep -q "FORWARD_IPV4=YES" /etc/sysconfig/network; then
+#    # FIXME: This doesn't work on reboot!
+#    echo "FORWARD_IPV4=YES" >> /etc/sysconfig/network
+#fi
 
 # Also, enable ip forwarding in rc.local, since the above trick isn't working
 if ! grep -q  "echo 1 >/proc/sys/net/ipv4/ip_forward" /etc/rc.local; then
@@ -186,8 +186,14 @@ else
     template=$(xe_min template-list name-label="Ubuntu 11.10 (64-bit)")
     if [ -z "$template" ]
     then
-        cp $TOP_DIR/devstackubuntupreseed.cfg /opt/xensource/www/
-        $TOP_DIR/scripts/xenoneirictemplate.sh "${HOST_IP}/devstackubuntupreseed.cfg"
+        if [ -d /opt/xensource ]; then
+            cp $TOP_DIR/devstackubuntupreseed.cfg /opt/xensource/www/
+            $TOP_DIR/scripts/xenoneirictemplate.sh "${HOST_IP}/devstackubuntupreseed.cfg"
+        else
+            mkdir -p /var/www/html
+            cp $TOP_DIR/devstackubuntupreseed.cfg /var/www/html
+            $TOP_DIR/scripts/xenoneirictemplate.sh "${HOST_IP}/devstackubuntupreseed.cfg"
+        fi
     fi
     $TOP_DIR/scripts/install-os-vpx.sh -t "Ubuntu 11.10 (64-bit)" -v $VM_BR -m $MGT_BR -p $PUB_BR -l $GUEST_NAME -r $OSDOMU_MEM_MB -k "flat_network_bridge=${VM_BR}"
 
